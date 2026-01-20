@@ -489,14 +489,11 @@ pub fn sign_json_with_active_did(
 
     let mut signatures = Vec::with_capacity(sanitized.len());
     for payload in sanitized {
-        match encode(
-            &Header {
-                alg: Algorithm::EdDSA,
-                ..Default::default()
-            },
-            &payload,
-            &pem_key,
-        ) {
+        let mut header = Header::new(Algorithm::EdDSA);
+        header.kid = None;
+        header.typ = None;
+
+        match encode(&header, &payload, &pem_key) {
             Ok(token) => signatures.push(Some(token)),
             Err(err) => {
                 log::error!("sign_json_with_active_did encode failed: {err}");
@@ -559,14 +556,10 @@ pub fn generate_zone_boot_config_jwt(
         iat: now,
     };
 
-    let token = encode(
-        &Header {
-            alg: Algorithm::EdDSA,
-            ..Default::default()
-        },
-        &claims,
-        &pem_key,
-    )?;
+    let mut header = Header::new(Algorithm::EdDSA);
+    header.kid = None;
+    header.typ = None;
+    let token = encode(&header, &claims, &pem_key)?;
 
     Ok(token)
 }
