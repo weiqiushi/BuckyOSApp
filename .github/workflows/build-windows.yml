@@ -36,11 +36,11 @@ jobs:
               run: cargo update
               working-directory: ./src-tauri
             - name: Build Buckyos Desktop
-              run: pnpm tauri build --no-bundle
+              run: pnpm tauri build --no-bundle -- --target ${{inputs.arch}}-pc-windows-msvc
             - name: Perpare artifact
               run: |
                 mkdir -p release\BuckyOSApp\${{inputs.version}}\BuckyOSApp-windows-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
-                copy src-tauri\target\release\buckyosapp.exe release\BuckyOSApp\${{inputs.version}}\BuckyOSApp-windows-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
+                copy src-tauri\target\${{inputs.arch}}-pc-windows-msvc\release\buckyosapp.exe release\BuckyOSApp\${{inputs.version}}\BuckyOSApp-windows-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
                 tar -czvf BuckyOSApp-windows-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}.tar.gz -C release .
             - name: Upload Artifact
               uses: actions/upload-artifact@v4
