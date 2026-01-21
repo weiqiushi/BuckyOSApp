@@ -40,6 +40,17 @@ jobs:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
+    - name: Set up current date and time
+      uses: Kaven-Universe/github-action-current-date-time@v1
+      id: date
+      with:
+        format: 'YYYYMMDD'
+    - name: short time
+      id: short_time
+      run: |
+        $val = "${{ steps.date.outputs.time }}"
+        $last6 = $val.Substring($val.Length - 6)
+        echo "time=$last6" >> $env:GITHUB_OUTPUT
     - name: Download All Artifacts
       uses: actions/download-artifact@v5
       with: 
@@ -49,8 +60,8 @@ jobs:
     - name: Create Github Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ inputs.version }}+build${{ needs.build-windows.outputs.build_time }}
-        name: BuckyOSApp Release ${{ inputs.version }}+build${{ needs.build-windows.outputs.build_time }}
+        tag_name: ${{ inputs.version }}+build${{ steps.short_time.outputs.time }}
+        name: BuckyOSApp Release ${{ inputs.version }}+build${{ steps.short_time.outputs.time }}
         generate_release_notes: true
         fail_on_unmatched_files: true
         files: "*.tar.gz"

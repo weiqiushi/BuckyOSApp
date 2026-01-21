@@ -1,32 +1,18 @@
 name: Build Buckyos Desktop MacOS Version
 on:
     workflow_call:
-            inputs:
-                version:
-                    required: true
-                    type: string
-                arch:
-                    required: true
-                    type: string
-            outputs:
-                build_time:
-                    value: ${{jobs.build.outputs.build_time}}
+        inputs:
+            version:
+                required: true
+                type: string
+            arch:
+                required: true
+                type: string
 
 jobs:
     build:
         runs-on: ${{ inputs.arch == 'aarch64' && 'macos-15' || 'macos-15-intel' }}
         steps:
-            - name: Set up current date and time
-              uses: Kaven-Universe/github-action-current-date-time@v1
-              id: date
-              with:
-                format: 'YYYYMMDD'
-            - name: short time
-              id: short_time
-              run: |
-                $val = "${{ steps.date.outputs.time }}"
-                $last6 = $val.Substring($val.Length - 6)
-                echo "last6=$last6" >> $env:GITHUB_OUTPUT
             - name: Checkout
               uses: actions/checkout@v4
             - name: Setup pnpm
@@ -61,5 +47,3 @@ jobs:
                 name: BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
                 path: BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}.tar.gz
                 if-no-files-found: error
-        outputs:
-          build_time: ${{ steps.date.outputs.time }}
