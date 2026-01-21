@@ -38,7 +38,7 @@ jobs:
             - name: Perpare artifact
               run: |
                 mkdir -p release/BuckyOSApp/${{inputs.version}}/BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
-                copy src-tauri/target/release/buckyosapp release/BuckyOSApp/${{inputs.version}}/BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
+                cp src-tauri/target/release/buckyosapp release/BuckyOSApp/${{inputs.version}}/BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
                 tar -czvf BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}.tar.gz -C release .
             - name: Upload Artifact
               uses: actions/upload-artifact@v4
