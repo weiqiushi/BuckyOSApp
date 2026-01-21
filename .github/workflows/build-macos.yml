@@ -1,0 +1,65 @@
+name: Build Buckyos Desktop MacOS Version
+on:
+    workflow_call:
+            inputs:
+                version:
+                    required: true
+                    type: string
+                arch:
+                    required: true
+                    type: string
+            outputs:
+                build_time:
+                    value: ${{jobs.build.outputs.build_time}}
+
+jobs:
+    build:
+        runs-on: ${{ inputs.arch == 'aarch64' && 'macos-15' || 'macos-15-intel' }}
+        steps:
+            - name: Set up current date and time
+              uses: Kaven-Universe/github-action-current-date-time@v1
+              id: date
+              with:
+                format: 'YYYYMMDD'
+            - name: short time
+              id: short_time
+              run: |
+                $val = "${{ steps.date.outputs.time }}"
+                $last6 = $val.Substring($val.Length - 6)
+                echo "last6=$last6" >> $env:GITHUB_OUTPUT
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                version: "latest"
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '22.x'
+            - name: Setup Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                toolchain: stable
+                targets: ${{inputs.arch}}-apple-darwin
+            - name: Install dependencies
+              run: pnpm install
+            - name: Update Cargo
+              run: cargo update
+              working-directory: ./src-tauri
+            - name: Build Buckyos Desktop
+              run: pnpm tauri build --no-bundle
+            - name: Perpare artifact
+              run: |
+                mkdir -p release/BuckyOSApp/${{inputs.version}}/BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
+                copy src-tauri/target/release/buckyosapp release/BuckyOSApp/${{inputs.version}}/BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
+                tar -czvf BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}.tar.gz -C release .
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v4
+              id: upload
+              with:
+                name: BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}
+                path: BuckyOSApp-apple-${{inputs.arch == 'x86_64' && 'amd64' || 'aarch64'}}.tar.gz
+                if-no-files-found: error
+        outputs:
+          build_time: ${{ steps.date.outputs.time }}

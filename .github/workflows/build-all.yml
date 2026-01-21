@@ -1,0 +1,58 @@
+name: Build All
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+        type: string
+    outputs:
+      build_time:
+        value: ${{jobs.build-windows.outputs.build_time}}
+
+jobs:
+  build-windows:
+    strategy:
+      matrix:
+        arch: ["x86_64", "aarch64"]
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      version: ${{ inputs.version }}
+      arch: ${{ matrix.arch }}
+    secrets: inherit
+  build-macos:
+    strategy:
+      matrix:
+        arch: ["x86_64", "aarch64"]
+    uses: ./.github/workflows/build-macos.yml
+    with:
+      version: ${{ inputs.version }}
+      arch: ${{ matrix.arch }}
+    secrets: inherit
+  publish-release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v5
+      with: 
+        merge-multiple: true
+    - name: List Files
+      run: ls -alh .
+    - name: Create Github Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ inputs.version }}+build${{ needs.build-windows.outputs.build_time }}
+        name: BuckyOSApp Release ${{ inputs.version }}+build${{ needs.build-windows.outputs.build_time }}
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        files: "*.tar.gz"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
