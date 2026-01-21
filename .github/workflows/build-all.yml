@@ -45,9 +45,8 @@ jobs:
     - name: short time
       id: short_time
       run: |
-        $val="${{ steps.date.outputs.time }}"
-        $last6=$val.Substring($val.Length - 6)
-        echo "time=$last6" >> $env:GITHUB_OUTPUT
+        val="${{ steps.date.outputs.time }}"
+        echo "time=${val: -6}" >> $GITHUB_OUTPUT
     - name: Download All Artifacts
       uses: actions/download-artifact@v5
       with: 
