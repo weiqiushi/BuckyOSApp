@@ -1,4 +1,4 @@
-use get_if_addrs::get_if_addrs;
+use if_addrs::get_if_addrs;
 
 #[tauri::command]
 pub fn local_ipv4_list() -> Result<Vec<String>, String> {
